@@ -1,2 +1,5 @@
-/data
 .python-version
+/notebook/.ipynb_checkpoints
+.vscode
+
+
