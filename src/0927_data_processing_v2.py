@@ -45,6 +45,9 @@ def processing_data(df,mode):
     # direction
     df['north'] = pd.Series(north_flag(df['direction']))
 
+    # structure
+    df['structure'] = structure_order(df['structure'])
+
     return df
 
 
@@ -125,6 +128,22 @@ def layout_split(layout):
                 x.append(0)
         
     return room_num,l,d,k,s
+
+def structure_order(structure):
+    res = structure.map({
+        'SRC（鉄骨鉄筋コンクリート）': 8,
+        'RC（鉄筋コンクリート）': 7,
+        'ALC（軽量気泡コンクリート）': 6,
+        'PC（プレキャスト・コンクリート（鉄筋コンクリート））': 5,
+        '軽量鉄骨': 4,
+        'HPC（プレキャスト・コンクリート（重量鉄骨））': 3,
+        '鉄骨造':  2,
+        'その他': 1,
+        '木造': 1,
+        'ブロック': 0
+    })
+
+    return res
     
 def north_flag(direction):
     res = []
@@ -140,7 +159,7 @@ def north_flag(direction):
             
     return res
 
-    
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="data processing")
