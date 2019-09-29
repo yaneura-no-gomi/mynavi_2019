@@ -54,7 +54,7 @@ def main(args):
             "min_split_gain": 0,
             "min_data_in_leaf": min_data_in_leaf,
             # "subsample": subsample
-            "n_jobs": -1,
+            "n_jobs": 1,
             # "device_type": 'gpu',
             'verbose': -1,
             "seed":0
