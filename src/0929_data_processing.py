@@ -8,6 +8,7 @@ import pandas_profiling as pdp
 import numpy as np
 import argparse
 from tqdm import tqdm_notebook as tqdm
+from sklearn.preprocessing import StandardScaler
 
 def processing_data(df,mode):
 
@@ -15,6 +16,8 @@ def processing_data(df,mode):
         df.columns = ['id','y','location','access','layout','age','direction','area','floor',
             'bath_toilet','kitchen','broadcast_com','facilities','parking','enviroment',
             'structure','contact_period']
+
+        df['log_y'] = np.log(df['y'])
 
 
     else:
@@ -50,6 +53,9 @@ def processing_data(df,mode):
 
     # access
     df['walk_time'],df['min_time'],df['avg_time'] = processing_walk_time(df['access'])
+
+    # location
+    df = preprocessing_location(df)
 
     return df
 
@@ -180,6 +186,39 @@ def processing_walk_time(access):
         avg_time.append(np.array(tmp_l).mean())
     
     return walk_time, min_time, avg_time
+
+def preprocessing_location(df):
+    '''
+    あらかじめtrainから求めておいた区ごとの家賃平均を標準化したものを特徴量として追加
+    '''
+
+    ku23 = ['千代田区','中央区','港区','新宿区','文京区','台東区','墨田区','江東区','品川区','目黒区',
+        '大田区','世田谷区','渋谷区','中野区','杉並区','豊島区','北区','荒川区','板橋区','練馬区',
+        '足立区','葛飾区','江戸川区']
+
+    l = []
+    for loc in df['location']:
+        for ku in ku23:
+            if ku in loc:
+                l.append(ku)
+
+    df['23ku'] = pd.Series(l)
+
+    ku_mean_std = pd.DataFrame({
+        '23ku':['葛飾区', '足立区', '江戸川区', '板橋区', '練馬区', '杉並区', '北区', '中野区', '大田区', '豊島区',
+            '世田谷区', '墨田区', '荒川区', '品川区', '江東区', '台東区', '文京区', '新宿区', '目黒区', '渋谷区',
+            '中央区', '千代田区', '港区'],
+        
+        '23ku_mean_std':[-1.2807574098213284, -1.0838383537489147, -1.0628650998041507, -0.963454612411768,
+            -0.8841650819596225,-0.7389579005058835,-0.6865532096858878, -0.6261828349388672, -0.468735870806376, -0.35406716765268814,
+            -0.2706013619101045,-0.20008236695852455,-0.1821170416794129,0.044923401400534836,0.09176861038849397,0.1328208371225872,
+            0.16009877672317527,0.2187234739900172,0.6587373980981039,1.4211751659457696,1.684828598882115,1.7378144005920697,2.651487648740651]
+
+    })
+
+    df = pd.merge(df,ku_mean_std,on='23ku').sort_values(by='id')
+    
+    return df
 
 if __name__ == "__main__":
 

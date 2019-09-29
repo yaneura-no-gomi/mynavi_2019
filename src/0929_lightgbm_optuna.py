@@ -18,11 +18,11 @@ import argparse
 
 def main(args):
 
-    df = pd.read_csv('~/Workspace/learning/signate/mynavi_2019/processed_data/train_v2.csv')
+    df = pd.read_csv('~/Workspace/learning/signate/mynavi_2019/processed_data/train_v3.csv')
     df = df.loc[:,['id', 'age','area','floor', 'structure', 'max_floor',
-        'room_num', 'L', 'D', 'K', 'S', 'north', 'y']]
+        'room_num', 'L', 'D', 'K', 'S', 'north', 'min_time','avg_time','23ku_mean_std','log_y','y']]
 
-    X, y = df.loc[:,'age':'north'], df['y']
+    X, y = df.loc[:,'age':'23ku_mean_std'], df['y']
     lgb_train = lgb.Dataset(X, y)
 
     print('loading csv is completed!')
@@ -85,13 +85,14 @@ def main(args):
 
     mdl = lgb.train(params,lgb_train)
 
-    test_df = pd.read_csv('~/Workspace/learning/signate/mynavi_2019/processed_data/test_v2.csv')
-    input_df = test_df.loc[:,['age','area','floor', 'structure', 'max_floor','room_num', 'L', 'D', 'K', 'S', 'north']]
+    test_df = pd.read_csv('~/Workspace/learning/signate/mynavi_2019/processed_data/test_v3.csv')
+    input_df = test_df.loc[:,['id', 'age','area','floor', 'structure', 'max_floor',
+        'room_num', 'L', 'D', 'K', 'S', 'north', 'min_time','avg_time','23ku_mean_std']]
 
     y_pred = mdl.predict(input_df,num_iteration=mdl.best_iteration)
 
     submit_file = pd.concat([test_df['id'],pd.Series(y_pred)],axis=1)
-    submit_file.to_csv('~/Workspace/learning/signate/mynavi_2019/submit/0929_submit.csv',header=False,index=False)
+    submit_file.to_csv('~/Workspace/learning/signate/mynavi_2019/submit/0930_submit.csv',header=False,index=False)
 
     print('Done!')
     
@@ -115,6 +116,14 @@ if __name__ == "__main__":
         type=int,
         default=5
     )
+
+    # parser.add_argument(
+    #     '--output_file',
+    #     '-output',
+    #     help ='csv path for submition',
+    #     type=str,
+    #     required=True
+    # )
 
     args = parser.parse_args()
 

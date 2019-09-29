@@ -184,7 +184,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--output_file',
         '-output',
-        help ='csv path for processing',
+        help ='csv path after processing',
         type=str,
         required=True
     )
