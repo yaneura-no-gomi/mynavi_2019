@@ -83,7 +83,7 @@ def main(args):
     print('---------------------------------')
     print()    
 
-    mdl = lgb.train(params,lgb_train)
+    mdl = lgb.train(study.best_params,lgb_train)
 
     test_df = pd.read_csv('~/Workspace/learning/signate/mynavi_2019/processed_data/test_v3.csv')
     input_df = test_df.loc[:,['id', 'age','area','floor', 'structure', 'max_floor',
