@@ -32,11 +32,11 @@ def main(args):
         drop_rate = trial.suggest_uniform('drop_rate', 0, 1.0)
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         subsample = trial.suggest_uniform('subsample', 0.8, 1.0)
-        num_leaves = trial.suggest_int('num_leaves', 5, 10000)
-        num_boost_round = trial.suggest_int('num_boost_round', 10, 10000)
-        min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 1, 1000)
-        min_child_samples = trial.suggest_int('min_child_samples', 5, 500)
-        min_child_weight = trial.suggest_int('min_child_weight', 5, 500)
+        num_leaves = trial.suggest_int('num_leaves', 10, 1000)
+        max_depth = trial.suggest_int('max_depth',1,20)
+        min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 100)
+        # min_child_samples = trial.suggest_int('min_child_samples', 5, 500)
+        # min_child_weight = trial.suggest_int('min_child_weight', 5, 500)
 
         lgbm_params = {
             'task' : 'train',
@@ -47,29 +47,17 @@ def main(args):
             # "max_bin": 256,
             "metrics": 'rmse',
             "drop_rate": drop_rate,
-            "num_boost_round": num_boost_round,
-            # "is_unbalance": False,
-            # "min_child_samples": min_child_samples,
-            # "min_child_weight": min_child_weight,
-            "min_split_gain": 0,
+            "max_depth": max_depth,
+            # "min_split_gain": 0,
             "min_data_in_leaf": min_data_in_leaf,
-            # "subsample": subsample
             "n_jobs": 1,
-            # "device_type": 'gpu',
             'verbose': -1,
             "seed":0
         }
                 
-        # print('1')
-        # mdl = lgb.train(params, lgb_train,num_boost_round=num_boost_round)
+    
         cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold,stratified=False)
 
-        # scores = cv_results['rmse']
-        # print(cv_results)
-        
-        # print('4')
-        # score = np.sqrt(abs(scores)).mean()
-        # print(len(cv_results['rmse-mean']))
         score = np.array(cv_results['rmse-mean']).mean()
 
         return score
@@ -89,12 +77,11 @@ def main(args):
     print()
 
 
+
     print('---------------------------------')    
     print('predict test data')
     print('---------------------------------')
     print()    
-
-    params = study.best_params
 
     mdl = lgb.train(params,lgb_train)
 
