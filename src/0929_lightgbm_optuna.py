@@ -54,7 +54,15 @@ def main(args):
             'verbose': -1,
             "seed":0
         }
-                
+
+        # init_params = {
+        #             'drop_rate': 0.06454829515920846, 
+        #             'learning_rate': 0.2880705152639411, 
+        #             'subsample': 0.9587507216075405, 
+        #             'num_leaves': 168, 
+        #             'max_depth': 19, 
+        #             'min_data_in_leaf': 7
+        #             }
     
         cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold,stratified=False)
 
@@ -86,7 +94,7 @@ def main(args):
     mdl = lgb.train(study.best_params,lgb_train)
 
     test_df = pd.read_csv('~/Workspace/learning/signate/mynavi_2019/processed_data/test_v3.csv')
-    input_df = test_df.loc[:,['id', 'age','area','floor', 'structure', 'max_floor',
+    input_df = test_df.loc[:,['age','area','floor', 'structure', 'max_floor',
         'room_num', 'L', 'D', 'K', 'S', 'north', 'min_time','avg_time','23ku_mean_std']]
 
     y_pred = mdl.predict(input_df,num_iteration=mdl.best_iteration)
