@@ -1,20 +1,21 @@
-import sys
-import os
+import argparse
 import glob
+import os
 import re
+import sys
 
+import lightgbm as lgb
+import matplotlib.pyplot as plt
+import numpy as np
+import optuna
 import pandas as pd
 import pandas_profiling as pdp
-import numpy as np
-import matplotlib.pyplot as plt
-from tqdm import tqdm_notebook as tqdm
+from sklearn import metrics
 from sklearn.metrics import mean_squared_error
-import lightgbm as lgb
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
 from sklearn.svm import SVR
-from sklearn import metrics
-import optuna
-import argparse
+from tqdm import tqdm_notebook as tqdm
+
 
 def main(args):
 
@@ -64,7 +65,7 @@ def main(args):
         #             'min_data_in_leaf': 7
         #             }
     
-        cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold,stratified=False)
+        cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold,stratified=False,fpreproc=)
 
         score = np.array(cv_results['rmse-mean']).mean()
 
