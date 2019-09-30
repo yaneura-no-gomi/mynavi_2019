@@ -28,6 +28,8 @@ def preprocessing_train_test():
         'structure','contact_period']
 
     
+    n_df = []
+
     for df in [train,test]:
 
         # area
@@ -57,8 +59,18 @@ def preprocessing_train_test():
         # access
         df['walk_time'],df['min_time'],df['avg_time'] = processing_walk_time(df['access'])
 
+        # parking 
+        df['bicycle_parking'] = processing_bicycle_parking(df['parking'])
+        df['car_parking'] = processing_car_parking(df['parking'])
+        df['bike_parking'] = processing_bike_parking(df['parking'])
+
+
         # location
-        df = preprocessing_location(df)
+        df['23ku'],ku_mean_std = preprocessing_location(df['location'])
+        n_df.append(pd.merge(df,ku_mean_std,on='23ku').sort_values(by='id'))
+
+
+    train,test = n_df[0],n_df[1]
 
     # count encoding for direction
     train, test = makeCountFull(train, test, ['direction'])
@@ -193,7 +205,7 @@ def processing_walk_time(access):
     
     return walk_time, min_time, avg_time
 
-def preprocessing_location(df):
+def preprocessing_location(location):
     '''
     あらかじめtrainから求めておいた区ごとの家賃平均を標準化したものを特徴量として追加
     '''
@@ -203,12 +215,12 @@ def preprocessing_location(df):
         '足立区','葛飾区','江戸川区']
 
     l = []
-    for loc in df['location']:
+    for loc in location:
         for ku in ku23:
             if ku in loc:
                 l.append(ku)
 
-    df['23ku'] = pd.Series(l)
+    # df['23ku'] = pd.Series(l)
 
     ku_mean_std = pd.DataFrame({
         '23ku':['葛飾区', '足立区', '江戸川区', '板橋区', '練馬区', '杉並区', '北区', '中野区', '大田区', '豊島区',
@@ -222,9 +234,7 @@ def preprocessing_location(df):
 
     })
 
-    df = pd.merge(df,ku_mean_std,on='23ku').sort_values(by='id')
-    
-    return df
+    return l, ku_mean_std
 
 def makeCountFull(train, test, categorical_features=None, report=False):
     add_cols = categorical_features
@@ -234,3 +244,143 @@ def makeCountFull(train, test, categorical_features=None, report=False):
         train[add_col + '_countall'] = train[add_col].map(pd.concat([train[add_col], test[add_col]], ignore_index=True).value_counts(dropna=False))
         test[add_col + '_countall'] = test[add_col].map(pd.concat([train[add_col], test[add_col]], ignore_index=True).value_counts(dropna=False))
     return train, test
+
+def processing_bicycle_parking(parking):
+    '''
+    駐輪場
+    無・空無 -> 0
+    有かつ無料 -> 1
+    有かつ有料 -> 2
+    '''
+    bicycle = []
+    for e in parking.fillna(''):
+        split_e = e.split('\t')
+        if '駐輪場' in e:
+            try:
+                state = split_e[split_e.index('駐輪場')+1]
+                if '無' in state:
+                    bicycle.append(0)
+
+                elif '空有' in state or '近隣' in state:
+                    target = split_e[split_e.index('駐輪場')+2]
+                    try:
+                        '''
+                        値段の記載がある場合
+                        '''
+                        price = re.search(r'\d*,*\d+円',target).group()
+                        price =  int(price[:-1].replace(',',''))
+
+                        if price==0:
+                            bicycle.append(1)
+
+                        else:
+                            bicycle.append(2)
+
+                    except:
+                        try:
+                            free = re.search(r'無料',target).group()
+                            bicycle.append(1)
+
+                        except:
+                            try:
+                                not_free = re.search(r'有料',target).group()
+                                bicycle.append(2)
+
+                            except:
+                                bicycle.append(1)
+
+            except:
+                # '詳細をお問い合わせください'などの余計な文字列が入っている場合
+                # この場合は駐輪場が有る場合なのでstate=1とする
+                bicycle.append(1)
+
+        else:
+            bicycle.append(0)
+    
+    return bicycle
+
+def processing_car_parking(parking):
+    '''
+    駐車場
+    無・空無 -> 0
+    有かつ無料 -> 1
+    有かつ有料 -> 2
+    '''
+    car = []
+    for e in parking.fillna(''):
+        split_e = e.split('\t')
+        if '駐車場' in e:
+            state = split_e[split_e.index('駐車場')+1]
+
+            if '無' in state:
+                car.append(0)
+            elif '空有' in state or '近隣' in state:
+                try:
+                    target = split_e[split_e.index('駐車場')+2]
+                    '''
+                    値段の記載がある場合
+                    '''
+                    price = re.search(r'\d*,*\d+円',target).group()
+                    price =  int(price[:-1].replace(',',''))
+
+                    if price==0:
+                        car.append(1)
+
+                    else:
+                        car.append(2)
+                except:
+                    '''
+                    index('駐車場')+2が存在しない場合(stateの記述で終わっている場合)
+                    '''
+                    car.append(1)
+
+        else:
+            car.append(0)
+    
+    return car
+
+def processing_bike_parking(parking):
+    '''
+    バイク置き場
+    無・空無 -> 0
+    有かつ無料 -> 1
+    有かつ有料 -> 2
+    '''
+    bike = []
+    for e in parking.fillna(''):
+        split_e = e.split('\t')
+        if 'バイク置き場' in e:
+            try:
+                state = split_e[split_e.index('バイク置き場')+1]
+                hoge.append(state)
+
+                if '無' in state:
+                    bike.append(0)
+
+                elif '空有' in state or '近隣' in state:
+                    try:
+                        target = split_e[split_e.index('バイク置き場')+2]
+                        '''
+                        値段の記載がある場合
+                        '''
+                        price = re.search(r'\d*,*\d+円', target).group()
+                        price = int(price[:-1].replace(',', ''))
+
+                        if price == 0:
+                            bike.append(1)
+
+                        else:
+                            bike.append(2)
+
+                    except:
+                        bike.append(1)
+            except:
+                '''
+                 '(大型バイク置き場有)', '(バイク置き場有)'
+                 よって1とする
+                '''
+                bike.append(1)
+        else:
+            bike.append(0)
+            
+    return pd.Series(bike)

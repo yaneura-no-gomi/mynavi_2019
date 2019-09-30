@@ -11,6 +11,7 @@ from tqdm import tqdm_notebook as tqdm
 from sklearn.preprocessing import StandardScaler
 
 from prepro_func.prepro_func import preprocessing_train_test
+# from prepro_func.tmp import preprocessing_train_test
 
 
 if __name__ == "__main__":
