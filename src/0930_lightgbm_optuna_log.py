@@ -55,7 +55,7 @@ def main(args):
             "num_leaves": num_leaves,
             "reg_lambda": reg_lambda,
             "reg_alpha": reg_alpha,
-            "colsample_bytree": colsample_bytree
+            "colsample_bytree": colsample_bytree,
             # "max_bin": 256,
             "drop_rate": drop_rate,
             "max_depth": max_depth,
