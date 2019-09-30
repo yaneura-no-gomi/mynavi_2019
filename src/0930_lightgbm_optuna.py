@@ -38,7 +38,7 @@ def main(args):
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         subsample = trial.suggest_uniform('subsample', 0.8, 1.0)
         num_leaves = trial.suggest_int('num_leaves', 10, 1000)
-        max_depth = trial.suggest_int('max_depth', 1, 20)
+        max_depth = trial.suggest_int('max_depth', 1, 50)
         min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 100)
         # min_child_samples = trial.suggest_int('min_child_samples', 5, 500)
         # min_child_weight = trial.suggest_int('min_child_weight', 5, 500)
@@ -60,16 +60,8 @@ def main(args):
             "seed": 0
         }
 
-        # init_params = {
-        #             'drop_rate': 0.06454829515920846,
-        #             'learning_rate': 0.2880705152639411,
-        #             'subsample': 0.9587507216075405,
-        #             'num_leaves': 168,
-        #             'max_depth': 19,
-        #             'min_data_in_leaf': 7
-        #             }
 
-        cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold, stratified=False, fpreproc=)
+        cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold, stratified=False)
 
         score = np.array(cv_results['rmse-mean']).mean()
 
@@ -95,6 +87,7 @@ def main(args):
     print()
 
     mdl = lgb.train(study.best_params, lgb_train)
+    
 
     test_df = pd.read_csv(args.test)
     input_df = test_df.loc[:, use_col]
@@ -105,6 +98,13 @@ def main(args):
     submit_file.columns = [0, 1]
     submit_file[1] = submit_file[1].astype(np.int64)
     submit_file.to_csv(args.submit, header=False, index=False)
+
+    print('---------------------------------')
+    print('saving model')
+    print('---------------------------------')
+    print()
+
+    mdl.save_model('mdl/0930_lgbm.txt',num_iteration=mdl.best_iteration)
 
     print('*********Done!*********')
 
