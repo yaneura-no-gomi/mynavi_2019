@@ -31,6 +31,8 @@ def preprocessing_train_test():
     n_df = []
 
     for df in [train,test]:
+        # remove outlier row
+        df = remove_outlier(df)
 
         # area
         df['area'] = df['area'].apply(del_m2)
@@ -383,4 +385,12 @@ def processing_bike_parking(parking):
         else:
             bike.append(0)
             
-    return pd.Series(bike)
+    return bike
+
+def remove_outlier(df):
+    remove_ids = [20927,20232,20428]
+    
+    for _id in remove_ids:
+        res = df.drop(df[df['id']==_id].index)
+    
+    return res
