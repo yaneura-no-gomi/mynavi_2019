@@ -62,11 +62,17 @@ def preprocessing_train_test():
         df['walk_time'],df['min_time'],df['avg_time'] = processing_walk_time(df['access'])
 
         # parking 
-        df['bicycle_parking'] = processing_bicycle_parking(df['parking'])
-        df['car_parking'] = processing_car_parking(df['parking'])
-        df['bike_parking'] = processing_bike_parking(df['parking'])
+        parking = df['parking']
+        df['bicycle_parking'] = processing_bicycle_parking(parking)
+        df['car_parking'] = processing_car_parking(parking)
+        df['bike_parking'] = processing_bike_parking(parking)
 
-
+        # bath_toilet
+        bt = df['bath_toilet']
+        df['toilet'] = processing_toilet(bt)
+        df['bath'] = processing_bath(bt)
+        df['sm_doku'],df['kanso'],df['onsui'],df['oidaki'],df['b_t_split'] = bath_toilet_option(bt)        
+ 
         # location
         df['23ku'],ku_mean_std = preprocessing_location(df['location'])
         n_df.append(pd.merge(df,ku_mean_std,on='23ku').sort_values(by='id'))
@@ -394,3 +400,92 @@ def remove_outlier(df):
         res = df.drop(df[df['id']==_id].index)
     
     return res
+
+def processing_toilet(bt):
+    '''
+    トイレ
+    なし：０
+    共同：１
+    専用：２
+    '''
+    toilet = []
+    for t in bt.fillna(''):
+        if 'トイレ' in t or '温水洗浄便座' in t:
+            if '共同トイレ' in t:
+                toilet.append(1)
+            elif '専用トイレ' in t:
+                toilet.append(2)
+            else:
+                toilet.append(2)
+        else:
+            if t=='':
+                toilet.append(2)
+            else:
+                toilet.append(0)
+    
+    return toilet
+
+def processing_bath(bt):
+    '''
+    バス
+    なし：０
+    シャワー：１
+    共同：２
+    専用：３
+    '''
+    bath = []
+    for b in bt.fillna(''):
+        if 'バス' in b or '浴室乾燥' in b or '追焚機能' in b:
+            if '共同バス' in b:
+                bath.append(2)
+            elif '専用バス' in b:
+                bath.append(3)
+            else:
+                bath.append(3)
+        else:
+            if 'シャワー' in b or '脱衣所' in b:
+                bath.append(1)
+            elif b=='':
+                bath.append(3)
+            else:
+                bath.append(0)
+    
+    return bath
+
+def bath_toilet_option(bt):
+    '''
+    洗面台独立、浴室乾燥機、追焚機能、温水洗浄便座、バス・トイレ別があるところにフラグ
+    '''
+    sm_doku = []
+    kanso = []
+    oidaki = []
+    onsui = []
+    b_t_split = []
+
+    for b in bt.fillna(''):
+        if '洗面台独立' in b:
+            sm_doku.append(1)
+        else:
+            sm_doku.append(0)
+
+        if '浴室乾燥機' in b:
+            kanso.append(1)
+        else:
+            kanso.append(0)
+
+        if '温水洗浄便座' in b:
+            onsui.append(1)
+        else:
+            onsui.append(0)
+
+        if '追焚機能' in b:
+            oidaki.append(1)
+        else:
+            oidaki.append(0)
+
+        if 'バス・トイレ別' in b:
+            b_t_split.append(1)
+        else:
+            b_t_split.append(0)
+
+    return sm_doku, kanso, onsui, oidaki, b_t_split

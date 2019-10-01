@@ -23,7 +23,7 @@ def main(args):
 
     use_col = ['age', 'area', 'floor', 'structure', 'max_floor', 'room_num', 'L', 'D',
                 'K', 'S', 'north', 'min_time', 'avg_time', 'bicycle_parking','car_parking','bike_parking','23ku_mean_std',
-                'direction_countall']
+                'direction_countall','toilet','bath','sm_doku','oidaki','onsui','b_t_split','kanso']
 
     df = df.loc[:,use_col + ['log_y', 'y']]
 
@@ -38,7 +38,7 @@ def main(args):
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         subsample = trial.suggest_uniform('subsample', 0.8, 1.0)
         num_leaves = trial.suggest_int('num_leaves', 10, 1000)
-        max_depth = trial.suggest_int('max_depth', 3, 10)
+        max_depth = trial.suggest_int('max_depth', 3, 20)
         min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 100)
         reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-3, 1e3)
         reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-3, 1e3)
@@ -57,6 +57,7 @@ def main(args):
             "reg_alpha": reg_alpha,
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
+            "subsample": subsample,
             # "max_bin": 256,
             "drop_rate": drop_rate,
             "max_depth": max_depth,
@@ -110,7 +111,7 @@ def main(args):
     print('---------------------------------')
     print()
 
-    mdl.save_model('mdl/1001_lgbm_log.txt',num_iteration=mdl.best_iteration)
+    mdl.save_model('mdl/1001_lgbm_log_2.txt',num_iteration=mdl.best_iteration)
 
     print('*********Done!*********')
 
