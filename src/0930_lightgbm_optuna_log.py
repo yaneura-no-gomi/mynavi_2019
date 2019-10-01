@@ -38,25 +38,19 @@ def main(args):
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         subsample = trial.suggest_uniform('subsample', 0.8, 1.0)
         num_leaves = trial.suggest_int('num_leaves', 10, 1000)
-        max_depth = trial.suggest_int('max_depth', 3, 10)
+        max_depth = trial.suggest_int('max_depth', 1, 50)
         min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 100)
-        reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-3, 1e3)
-        reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-3, 1e3)
-        colsample_bytree = trial.suggest_discrete_uniform('colsample_bytree', 0.5, 1.0, .1)
-        min_child_weight = trial.suggest_int('min_child_weight',5,40)
-
+        # min_child_samples = trial.suggest_int('min_child_samples', 5, 500)
+        # min_child_weight = trial.suggest_int('min_child_weight', 5, 500)
 
         lgbm_params = {
             'task': 'train',
-            "metrics": 'rmse',
             'boosting_type': 'gbdt',
             'objective': 'regression',
             "learning_rate": learning_rate,
             "num_leaves": num_leaves,
-            "reg_lambda": reg_lambda,
-            "reg_alpha": reg_alpha,
-            "colsample_bytree": colsample_bytree,
             # "max_bin": 256,
+            "metrics": 'rmse',
             "drop_rate": drop_rate,
             "max_depth": max_depth,
             # "min_split_gain": 0,
@@ -65,15 +59,6 @@ def main(args):
             'verbose': -1,
             "seed": 0
         }
-
-        # init_params = {
-        #             'drop_rate': 0.06454829515920846,
-        #             'learning_rate': 0.2880705152639411,
-        #             'subsample': 0.9587507216075405,
-        #             'num_leaves': 168,
-        #             'max_depth': 19,
-        #             'min_data_in_leaf': 7
-        #             }
 
         cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold, stratified=False)
 
