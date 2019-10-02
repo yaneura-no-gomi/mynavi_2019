@@ -13,7 +13,6 @@ import pandas_profiling as pdp
 from sklearn import metrics
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
-from sklearn.svm import SVR
 from tqdm import tqdm_notebook as tqdm
 
 
@@ -21,9 +20,20 @@ def main(args):
 
     df = pd.read_csv(args.train)
 
-    use_col = ['age', 'area', 'floor', 'structure', 'max_floor', 'room_num', 'L', 'D',
+    use_col = ['age_month', 'area_num', 'floor', 'structure_orderd', 'max_floor', 'room_num', 'L', 'D',
                 'K', 'S', 'north', 'min_time', 'avg_time', 'bicycle_parking','car_parking','bike_parking','23ku_mean_std',
-                'direction_countall','toilet','bath','sm_doku','oidaki','onsui','b_t_split','kanso']
+                'direction_countall','toilet','bath','sm_doku','oidaki','onsui','b_t_split','kanso',]
+
+    use_col += ['23ku_countall',
+                'area_num_countall',
+                'age_countall',
+                'floor_countall',
+                'max_floor_countall',
+                'layout_countall',
+                'room_num_countall',
+                'direction_countall',
+                'facilities_countall',
+                'contact_period_countall']
 
     df = df.loc[:,use_col + ['log_y', 'y']]
 
@@ -38,7 +48,7 @@ def main(args):
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         subsample = trial.suggest_uniform('subsample', 0.8, 1.0)
         num_leaves = trial.suggest_int('num_leaves', 10, 1000)
-        max_depth = trial.suggest_int('max_depth', 3, 20)
+        max_depth = trial.suggest_int('max_depth', 3, 10)
         min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 100)
         reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-3, 1e3)
         reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-3, 1e3)
@@ -111,7 +121,7 @@ def main(args):
     print('---------------------------------')
     print()
 
-    mdl.save_model('mdl/1001_lgbm_log_2.txt',num_iteration=mdl.best_iteration)
+    mdl.save_model('mdl/1002_lgbm_log.txt',num_iteration=mdl.best_iteration)
 
     print('*********Done!*********')
 

@@ -35,10 +35,10 @@ def preprocessing_train_test():
         df = remove_outlier(df)
 
         # area
-        df['area'] = df['area'].apply(del_m2)
+        df['area_num'] = df['area'].apply(del_m2)
 
         # age
-        df['age'] = df['age'].apply(year_to_month)
+        df['age_month'] = df['age'].apply(year_to_month)
 
         # floor
         df['max_floor'] = max_floor_col(df['floor'])
@@ -56,7 +56,7 @@ def preprocessing_train_test():
         df['north'] = pd.Series(north_flag(df['direction']))
 
         # structure
-        df['structure'] = structure_order(df['structure'])
+        df['structure_orderd'] = structure_order(df['structure'])
 
         # access
         df['walk_time'],df['min_time'],df['avg_time'] = processing_walk_time(df['access'])
@@ -81,7 +81,8 @@ def preprocessing_train_test():
     train,test = n_df[0],n_df[1]
 
     # count encoding for direction
-    train, test = makeCountFull(train, test, ['direction'])
+    train, test = makeCountFull(train, test, ['23ku','area_num','age','floor','max_floor','layout',
+            'room_num','direction','facilities','contact_period'])
 
     return train, test
 
