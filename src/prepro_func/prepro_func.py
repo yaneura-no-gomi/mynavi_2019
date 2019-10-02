@@ -18,14 +18,14 @@ def preprocessing_train_test():
     
     train.columns = ['id','y','location','access','layout','age','direction','area','floor',
         'bath_toilet','kitchen','broadcast_com','facilities','parking','enviroment',
-        'structure','contact_period']
+        'structure','contract_period']
 
     train['log_y'] = np.log(train['y'])
 
 
     test.columns = ['id','location','access','layout','age','direction','area','floor',
         'bath_toilet','kitchen','broadcast_com','facilities','parking','enviroment',
-        'structure','contact_period']
+        'structure','contract_period']
 
     
     n_df = []
@@ -45,15 +45,16 @@ def preprocessing_train_test():
         df['floor'] = df['floor'].apply(extract_floor)
 
         # layout
-        room_num,l,d,k,s = layout_split(df['layout'])
+        room_num,l,d,k,r,s = layout_split(df['layout'])
         df['room_num'] = room_num
-        df['L'] = pd.Series(l)
-        df['D'] = pd.Series(d)
-        df['K'] = pd.Series(k)
-        df['S'] = pd.Series(s)
+        df['L'] = l
+        df['D'] = d
+        df['K'] = k
+        df['R'] = r
+        df['S'] = s
 
         # direction
-        df['north'] = pd.Series(north_flag(df['direction']))
+        df['north'] = north_flag(df['direction'])
 
         # structure
         df['structure_orderd'] = structure_order(df['structure'])
@@ -66,12 +67,17 @@ def preprocessing_train_test():
         df['bicycle_parking'] = processing_bicycle_parking(parking)
         df['car_parking'] = processing_car_parking(parking)
         df['bike_parking'] = processing_bike_parking(parking)
+        # df['parking'] = df['parking'].fillna('駐車場\t無')
 
         # bath_toilet
         bt = df['bath_toilet']
         df['toilet'] = processing_toilet(bt)
         df['bath'] = processing_bath(bt)
-        df['sm_doku'],df['kanso'],df['onsui'],df['oidaki'],df['b_t_split'] = bath_toilet_option(bt)        
+        df['sm_doku'],df['kanso'],df['onsui'],df['oidaki'],df['b_t_split'] = bath_toilet_option(bt)
+
+        # contract_period
+        df['teiki_syakuya'] = teiki_syakuya(df['contract_period'])
+        df['contract_period'] = df.fillna('2年間')
  
         # location
         df['23ku'],ku_mean_std = preprocessing_location(df['location'])
@@ -82,7 +88,7 @@ def preprocessing_train_test():
 
     # count encoding for direction
     train, test = makeCountFull(train, test, ['23ku','area_num','age','floor','max_floor','layout',
-            'room_num','direction','facilities','contact_period'])
+            'room_num','direction','facilities','contract_period'])
 
     return train, test
 
@@ -150,12 +156,13 @@ def max_floor_col(floor_col):
 
 def layout_split(layout):
     room_num = []
-    l,d,k,s = [],[],[],[]
+    l,d,k,r,s = [],[],[],[],[]
     
+    # layout = layout.fillna('')
     for v in layout:
         room_num.append(int(v[0]))
         
-        for x, r_type in zip([l,d,k,s],['L','D','K','S']):
+        for x, r_type in zip([l,d,k,r,s],['L','D','K','R','S']):
             
             if r_type in v:
                 x.append(1)
@@ -163,7 +170,7 @@ def layout_split(layout):
             else :
                 x.append(0)
         
-    return room_num,l,d,k,s
+    return room_num,l,d,k,r,s
 
 def structure_order(structure):
     res = structure.map({
@@ -219,15 +226,7 @@ def preprocessing_location(location):
     あらかじめtrainから求めておいた区ごとの家賃平均を標準化したものを特徴量として追加
     '''
 
-    ku23 = ['千代田区','中央区','港区','新宿区','文京区','台東区','墨田区','江東区','品川区','目黒区',
-        '大田区','世田谷区','渋谷区','中野区','杉並区','豊島区','北区','荒川区','板橋区','練馬区',
-        '足立区','葛飾区','江戸川区']
-
-    l = []
-    for loc in location:
-        for ku in ku23:
-            if ku in loc:
-                l.append(ku)
+    ku23 = location.str.extract('(.+)都(.*区)(.*)',expand=True)[1]
 
     # df['23ku'] = pd.Series(l)
 
@@ -243,7 +242,7 @@ def preprocessing_location(location):
 
     })
 
-    return l, ku_mean_std
+    return ku23, ku_mean_std
 
 def makeCountFull(train, test, categorical_features=None, report=False):
     add_cols = categorical_features
@@ -399,7 +398,9 @@ def remove_outlier(df):
     
     for _id in remove_ids:
         res = df.drop(df[df['id']==_id].index)
-    
+        df = res
+
+    res = df
     return res
 
 def processing_toilet(bt):
@@ -490,3 +491,12 @@ def bath_toilet_option(bt):
             b_t_split.append(0)
 
     return sm_doku, kanso, onsui, oidaki, b_t_split
+
+def teiki_syakuya(c_period):
+    res = []
+    for c in c_period.fillna(''):
+        if '定期借家' in c:
+            res.append(1)
+        else:
+            res.append(0)
+    return res

@@ -31,7 +31,6 @@ def main(args):
                 'max_floor_countall',
                 'layout_countall',
                 'room_num_countall',
-                'direction_countall',
                 'facilities_countall',
                 'contact_period_countall']
 
@@ -121,7 +120,7 @@ def main(args):
     print('---------------------------------')
     print()
 
-    mdl.save_model('mdl/1002_lgbm_log.txt',num_iteration=mdl.best_iteration)
+    mdl.save_model(args.mdl_save,num_iteration=mdl.best_iteration)
 
     print('*********Done!*********')
 
@@ -163,6 +162,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--submit',
         help='path for outputing submit file',
+        type=str,
+        required=True
+    )
+
+    parser.add_argument(
+        '--mdl_save',
+        help='path for mdl saving',
         type=str,
         required=True
     )
