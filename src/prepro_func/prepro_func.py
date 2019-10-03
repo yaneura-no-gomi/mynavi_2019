@@ -207,6 +207,7 @@ def processing_walk_time(access):
     walk_time = []
     min_time = []
     avg_time = []
+
     for a in access:
         if '徒歩' in a:
             tmp_l = []
@@ -500,3 +501,157 @@ def teiki_syakuya(c_period):
         else:
             res.append(0)
     return res
+
+def processing_kitchen(train,test):
+    kitchen = pd.concat([train['kitchen'],test['kitchen']])
+    
+    k_uni = []
+    for k in kitchen.fillna(''):
+        k_split = k.split('\t')
+        k_uni += k_split
+        
+    k_uni = sorted(list(set(k_uni)))
+    
+    rm_idx = []
+    for i,u in enumerate(k_uni):
+        if '／' in u:
+            rm_idx.append(i)
+            
+    k_uni = [k_uni[i] for i in range(len(k_uni)) if i not in rm_idx]    
+    n_df = []
+    for df in [train,test]:
+        for i,v in enumerate(k_uni[1:]):
+            l = []
+
+            for k in df['kitchen'].fillna(' '):
+                if v in k:
+                    l.append(1)
+                else:
+                    l.append(0)
+            df['kitchen_'+str(i)] = l
+            
+        n_df.append(df)
+        
+    return n_df[0],n_df[1]
+
+def processing_broadcast_com(train,test):
+    broadcast_com = pd.concat([train['broadcast_com'],test['broadcast_com']])
+    
+    b_uni = []
+    for b in broadcast_com.fillna(''):
+        b_split = b.split('\t')
+        b_uni += b_split
+        
+    b_uni = sorted(list(set(b_uni)))
+    
+    rm_idx = []
+    for i,u in enumerate(b_uni):
+        if '／' in u:
+            rm_idx.append(i)
+            
+    b_uni = [b_uni[i] for i in range(len(b_uni)) if i not in rm_idx]
+#     print(b_uni)
+    
+    n_df = []
+    for df in [train,test]:
+        for i,v in enumerate(b_uni[1:]):
+            l = []
+
+            for k in df['broadcast_com'].fillna(' '):
+                if v in k:
+                    l.append(1)
+                else:
+                    l.append(0)
+            df['bc_'+str(i)] = l
+            
+        n_df.append(df)
+        
+    return n_df[0],n_df[1]
+
+def processing_facilities(train,test):
+    facilities = pd.concat([train['facilities'],test['facilities']])
+    
+    f_uni = []
+    for f in facilities.fillna(''):
+        f_split = f.split('\t')
+        f_uni += f_split
+        
+    f_uni = sorted(list(set(f_uni)))
+    
+    rm_idx = []
+    for i,u in enumerate(f_uni):
+        if '／' in u:
+            rm_idx.append(i)
+            
+    f_uni = [f_uni[i] for i in range(len(f_uni)) if i not in rm_idx]
+    print(f_uni)
+    
+    n_df = []
+    for df in [train,test]:
+        for i,v in enumerate(f_uni[1:]):
+            l = []
+
+            for k in df['facilities'].fillna(' '):
+                if v in k:
+                    l.append(1)
+                else:
+                    l.append(0)
+            df['facilities_'+str(i)] = l
+            
+        n_df.append(df)
+        
+    return n_df[0],n_df[1]
+
+def processing_env(df):
+    e_num = []
+    dis_ave = []
+    dis_min = []
+
+    env = df['enviroment']
+    nan_idx = env[env.isnull()]
+
+    for idx in range(len(env)):
+        if idx in nan_idx:
+            e_num.append(0)
+            dis_ave.append(-1)
+            dis_min.append(-1)
+        else:
+            e_split = env[idx].split('\t')
+            e_num.append(len(e_split))  
+
+            distance = []
+            for s in e_split:
+                distance.append(int(re.search(r'\d+',s).group()))
+                
+            dis_ave.append(np.array(distance).mean())
+            dis_min.append(np.array(distance).min())
+
+    print(len(e_num),len(dis_ave))
+    df['env_num'] = e_num
+    df['dis_ave'] = dis_ave
+    df['dis_min'] = dis_min
+
+    df[df['dis_ave']==-1]['dis_ave'] = np.array(dis_ave).mean()
+    df[df['dis_min']==-1]['dis_min'] = np.array(dis_min).mean()
+    
+    return df
+
+def processing_school(df):
+    school = []
+    univ = []
+    
+    for e in df['enviroment'].fillna(''):
+        if '大学' in e:
+            univ.append(1)
+        else:
+            univ.append(0)
+            
+        if '学校' in e or '小学校' in e or  '幼稚園・保育園' in e:
+            school.append(1)
+        else:
+            school.append(0)
+    
+    df['school'] = school
+    df['univ'] = univ
+    
+    return df
