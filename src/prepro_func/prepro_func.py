@@ -79,6 +79,10 @@ def preprocessing_train_test():
         df['teiki_syakuya'] = teiki_syakuya(df['contract_period'])
         df['contract_period'] = df.fillna('2年間')
  
+        # enviroment
+        df['e_num'],df['dis_ave'],df['dis_min'] = processing_env(df['enviroment'])
+        df['school'],df['univ'] = processing_school(df['enviroment'])
+
         # location
         df['23ku'],ku_mean_std = preprocessing_location(df['location'])
         n_df.append(pd.merge(df,ku_mean_std,on='23ku').sort_values(by='id'))
@@ -86,9 +90,16 @@ def preprocessing_train_test():
 
     train,test = n_df[0],n_df[1]
 
+    # facilities
+    train, test = processing_facilities(train,test)
+    # broadcast_com
+    train, test = processing_broadcast_com(train,test)
+    # kitchen
+    train, test = processing_kitchen(train,test)
+
     # count encoding for direction
     train, test = makeCountFull(train, test, ['23ku','area_num','age','floor','max_floor','layout',
-            'room_num','direction','facilities','contract_period'])
+            'direction','facilities','contract_period'])
 
     return train, test
 
@@ -286,16 +297,18 @@ def processing_bicycle_parking(parking):
                             bicycle.append(2)
 
                     except:
-                        try:
-                            free = re.search(r'無料',target).group()
+                        # try:
+                            # _f = re.search(r'無料',target).group()
+                        if '無料' in target:   
                             bicycle.append(1)
 
-                        except:
-                            try:
-                                not_free = re.search(r'有料',target).group()
+                        else:
+                            # try:
+                            #     _f = re.search(r'有料',target).group()
+                            if '有料' in target:
                                 bicycle.append(2)
 
-                            except:
+                            else:
                                 bicycle.append(1)
 
             except:
@@ -584,7 +597,7 @@ def processing_facilities(train,test):
             rm_idx.append(i)
             
     f_uni = [f_uni[i] for i in range(len(f_uni)) if i not in rm_idx]
-    print(f_uni)
+    # print(f_uni)
     
     n_df = []
     for df in [train,test]:
@@ -602,22 +615,22 @@ def processing_facilities(train,test):
         
     return n_df[0],n_df[1]
 
-def processing_env(df):
+def processing_env(env):
     e_num = []
     dis_ave = []
     dis_min = []
 
-    env = df['enviroment']
-    nan_idx = env[env.isnull()]
-
-    for idx in range(len(env)):
-        if idx in nan_idx:
+    # nan_idx = env[env.isnull()].index
+    # print(nan_idx)
+    for e in env.fillna(''):
+        if e=='':
             e_num.append(0)
             dis_ave.append(-1)
             dis_min.append(-1)
         else:
-            e_split = env[idx].split('\t')
-            e_num.append(len(e_split))  
+            # print(idx)
+            e_split = e.split('\t')
+            e_num.append(len(e_split))
 
             distance = []
             for s in e_split:
@@ -626,21 +639,23 @@ def processing_env(df):
             dis_ave.append(np.array(distance).mean())
             dis_min.append(np.array(distance).min())
 
-    print(len(e_num),len(dis_ave))
-    df['env_num'] = e_num
-    df['dis_ave'] = dis_ave
-    df['dis_min'] = dis_min
+    # df['env_num'] = e_num
+    # df['dis_ave'] = dis_ave
+    # df['dis_min'] = dis_min
 
-    df[df['dis_ave']==-1]['dis_ave'] = np.array(dis_ave).mean()
-    df[df['dis_min']==-1]['dis_min'] = np.array(dis_min).mean()
+    # df[df['dis_ave']==-1].loc[:,'dis_ave'] = np.array(dis_ave).mean()
+    # df[df['dis_min']==-1].loc[:,'dis_min'] = np.array(dis_min).mean()
+
+    dis_ave = [i if i!=-1 else np.array(dis_ave).mean() for i in dis_ave]
+    dis_min = [i if i!=-1 else np.array(dis_min).mean() for i in dis_min]
     
-    return df
+    return e_num,dis_ave,dis_min
 
-def processing_school(df):
+def processing_school(env):
     school = []
     univ = []
     
-    for e in df['enviroment'].fillna(''):
+    for e in env.fillna(''):
         if '大学' in e:
             univ.append(1)
         else:
@@ -651,7 +666,4 @@ def processing_school(df):
         else:
             school.append(0)
     
-    df['school'] = school
-    df['univ'] = univ
-    
-    return df
+    return school, univ

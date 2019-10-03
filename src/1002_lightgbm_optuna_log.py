@@ -20,22 +20,17 @@ def main(args):
 
     df = pd.read_csv(args.train)
 
-    use_col = ['age_month', 'area_num', 'floor', 'structure_orderd', 'max_floor', 'room_num', 'L', 'D',
-                'K', 'R','S', 'north', 'min_time', 'avg_time', 'bicycle_parking','car_parking','bike_parking','23ku_mean_std',
-                'toilet','bath','sm_doku','oidaki','onsui','b_t_split','kanso','teiki_syakuya']
+    use_col = df.columns
 
-    use_col += ['23ku_countall',
-                'area_num_countall',
-                'age_countall',
-                'floor_countall',
-                'direction_countall',
-                'max_floor_countall',
-                'layout_countall',
-                'room_num_countall',
-                'facilities_countall',
-                'contract_period_countall']
+    un_use_col = ['id','y','log_y','location', 'access', 'layout', 'age', 'direction', 'area','floor', 'bath_toilet', 'kitchen',
+                 'broadcast_com', 'facilities','parking', 'enviroment', 'structure', 'contract_period',
+                 'walk_time','23ku',
+                #  'area_num_countall','floor_countall','room_num_countall','facilities_countall',
+                ]
 
-    df = df.loc[:,use_col + ['log_y', 'y']]
+    use_col = [c for c in use_col if c not in un_use_col]
+
+    print(use_col)
 
     X, y = df.loc[:, use_col], df['log_y']
     lgb_train = lgb.Dataset(X, y)
@@ -48,10 +43,10 @@ def main(args):
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         subsample = trial.suggest_uniform('subsample', 0.8, 1.0)
         num_leaves = trial.suggest_int('num_leaves', 10, 1000)
-        max_depth = trial.suggest_int('max_depth', 3, 10)
+        max_depth = trial.suggest_int('max_depth', 3, 15)
         min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 100)
-        reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-3, 1e3)
-        reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-3, 1e3)
+        reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-3, 1e4)
+        reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-3, 1e4)
         colsample_bytree = trial.suggest_discrete_uniform('colsample_bytree', 0.5, 0.9, .1)
         min_child_weight = trial.suggest_int('min_child_weight',5,40)
 
@@ -68,7 +63,7 @@ def main(args):
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
             "subsample": subsample,
-            # "max_bin": 256,
+            "max_bin": 256,
             "drop_rate": drop_rate,
             "max_depth": max_depth,
             # "min_split_gain": 0,
