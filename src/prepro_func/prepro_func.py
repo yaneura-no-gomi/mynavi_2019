@@ -214,24 +214,81 @@ def north_flag(direction):
             
     return res
 
+# def processing_walk_time(access):
+#     walk_time = []
+#     min_time = []
+#     avg_time = []
+
+#     for a in access:
+#         if '徒歩' in a:
+#             tmp_l = []
+
+#             for t in re.findall(r'徒歩\d+分',a):
+#                 tmp = int(re.search(r'\d+',t).group())
+#                 tmp_l.append(tmp)
+
+#         walk_time.append(tmp_l)
+#         min_time.append(np.array(tmp_l).min())
+#         avg_time.append(np.array(tmp_l).mean())
+    
+#     return walk_time, min_time, avg_time
+
 def processing_walk_time(access):
-    walk_time = []
+    times = []
     min_time = []
-    avg_time = []
+    ave_time = []
 
     for a in access:
-        if '徒歩' in a:
-            tmp_l = []
+        ways = a.split('\t\t')
+        time = []
+        for way in ways:
+            hun = way.count('分')
+            if hun == 0:
+                continue
 
-            for t in re.findall(r'徒歩\d+分',a):
-                tmp = int(re.search(r'\d+',t).group())
-                tmp_l.append(tmp)
+            elif hun == 1:
+                hoge = 1
+                t = re.search(r'\d+分', way).group()[:-1]
+                time.append(int(t))
 
-        walk_time.append(tmp_l)
-        min_time.append(np.array(tmp_l).min())
-        avg_time.append(np.array(tmp_l).mean())
-    
-    return walk_time, min_time, avg_time
+            elif hun == 2:
+                if 'バス' not in way:
+                    # 9行のみ
+#                     print(way)
+                    tmp = re.findall(r'徒歩\d+分', way)
+                    l = []
+                    for s in tmp:
+                        t = int(s[2:-1])
+                        l.append(int(t))
+                    time.append(min(l))
+
+                else:
+                    try:
+                        b_t = re.search(r'バス\(\d+分\)', way).group()
+                    except:
+                        b_t = re.search(r'バス\d+分', way).group()
+                    b_t = int(re.search(r'\d+', b_t).group())
+                    w_t = re.search(r'徒歩\d+分', way).group()
+                    w_t = int(re.search(r'\d+', w_t).group())
+                    time.append(b_t*5+w_t)
+
+            elif hun == 3:
+                # 3行のみ
+                if 'バス' in way:
+                    t = re.search(r'下車徒歩\d+分', way).group()
+                    t = re.search(r'\d+', t).group()
+                    time.append(int(t))
+                else:
+                    tmp = re.findall(r'徒歩\d+分', way)
+                    tmp = [int(re.search(r'\d+', t).group()) for t in tmp]
+                    time += [int(t) for t in tmp]
+
+            
+        times.append(time)
+        min_time.append(min(time))
+        ave_time.append(np.array(time).mean())
+
+    return times,min_time,ave_time
 
 def preprocessing_location(location):
     '''
