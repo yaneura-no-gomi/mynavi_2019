@@ -15,6 +15,8 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
 from tqdm import tqdm_notebook as tqdm
 
+from utils.high_and_low_clf import High_and_Low_Classifier
+
 
 def main(args):
 
@@ -39,8 +41,6 @@ def main(args):
     use_col = [c for c in use_col if c not in un_use_col]
 
     print(use_col)
-
-    df = df[df['y']<400000]
 
     X, y = df.loc[:, use_col], df['log_y']
     X_train, X_test,y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
