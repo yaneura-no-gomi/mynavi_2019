@@ -25,8 +25,16 @@ def main(args):
     un_use_col = ['id','y','log_y','location', 'access', 'layout', 'age', 'direction', 'area','floor', 'bath_toilet', 'kitchen',
                  'broadcast_com', 'facilities','parking', 'enviroment', 'structure', 'contract_period',
                  'walk_time','23ku',
-                #  'area_num_countall','floor_countall','room_num_countall','facilities_countall',
+                #  'area_num_countall','floor_countall','room_num_countall','facilities_countall','age_countall','area_num_countall',
                 ]
+
+    mdl = lgb.Booster(model_file='mdl/1004_lgbm_log_4.txt')
+    feature_importances = pd.DataFrame()
+    feature_importances['feature'] = mdl.feature_name()
+    feature_importances['importance'] = mdl.feature_importance()
+    feature_importances = feature_importances.sort_values(by='importance', ascending=False)
+
+    un_use_col += list(feature_importances[feature_importances['importance']<30]['feature'])
 
     use_col = [c for c in use_col if c not in un_use_col]
 
@@ -41,15 +49,15 @@ def main(args):
 
         drop_rate = trial.suggest_uniform('drop_rate', 0, 1.0)
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
-        subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
-        num_leaves = trial.suggest_int('num_leaves', 10, 10000)
-        max_depth = trial.suggest_int('max_depth', 3, 20)
+        # subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
+        num_leaves = trial.suggest_int('num_leaves', 10, 2**6)
+        max_depth = trial.suggest_int('max_depth', 3, 6)
         min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 1000)
-        reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-2, 1e3)
-        reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-2, 1e3)
-        min_split_gain = trial.suggest_loguniform('min_split_gain', 1e-2, 1e3)
-        colsample_bytree = trial.suggest_discrete_uniform('colsample_bytree', 0.5, 0.9, .1)
-        min_child_weight = trial.suggest_int('min_child_weight',5,40)
+        reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-4, 1e3)
+        reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-4, 1e3)
+        min_split_gain = trial.suggest_loguniform('min_split_gain', 1e-4, 1e3)
+        colsample_bytree = trial.suggest_uniform('colsample_bytree', 0.3, 1.0)
+        min_child_weight = trial.suggest_int('min_child_weight',5,50)
 
 
         lgbm_params = {
@@ -64,8 +72,8 @@ def main(args):
             "min_split_gain": min_split_gain,
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
-            "subsample": subsample,
-            # "max_bin": 128,
+            # "subsample": subsample,
+            # "max_bin": 1024,
             "drop_rate": drop_rate,
             "max_depth": max_depth,
             "min_data_in_leaf": min_data_in_leaf,

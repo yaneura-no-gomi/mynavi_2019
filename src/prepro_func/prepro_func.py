@@ -83,12 +83,18 @@ def preprocessing_train_test():
         df['e_num'],df['dis_ave'],df['dis_min'] = processing_env(df['enviroment'])
         df['school'],df['univ'] = processing_school(df['enviroment'])
 
+        # area_par_room
+        df['area_par_room'] = area_par_room(df)
+
         # location
         df['23ku'],ku_mean_std = preprocessing_location(df['location'])
         n_df.append(pd.merge(df,ku_mean_std,on='23ku').sort_values(by='id'))
 
 
     train,test = n_df[0],n_df[1]
+
+    # high price labeling
+    train['high_price_label'] = high_price_label(train,400000)
 
     # facilities
     train, test = processing_facilities(train,test)
@@ -165,14 +171,24 @@ def max_floor_col(floor_col):
 
     return res
 
+def high_price_label(train,th_h):
+    def labeling(row):
+        if row['y']<th_h:
+            return 0
+        else:
+            return 1
+    
+    return train.apply(labeling,axis=1)
+
 def layout_split(layout):
     room_num = []
     l,d,k,r,s = [],[],[],[],[]
     
     # layout = layout.fillna('')
     for v in layout:
-        room_num.append(int(v[0]))
-        
+        room_n = re.search(r'\d+',v).group()
+        room_num.append(int(room_n))
+
         for x, r_type in zip([l,d,k,r,s],['L','D','K','R','S']):
             
             if r_type in v:
@@ -214,24 +230,6 @@ def north_flag(direction):
             
     return res
 
-# def processing_walk_time(access):
-#     walk_time = []
-#     min_time = []
-#     avg_time = []
-
-#     for a in access:
-#         if '徒歩' in a:
-#             tmp_l = []
-
-#             for t in re.findall(r'徒歩\d+分',a):
-#                 tmp = int(re.search(r'\d+',t).group())
-#                 tmp_l.append(tmp)
-
-#         walk_time.append(tmp_l)
-#         min_time.append(np.array(tmp_l).min())
-#         avg_time.append(np.array(tmp_l).mean())
-    
-#     return walk_time, min_time, avg_time
 
 def processing_walk_time(access):
     times = []
@@ -724,3 +722,11 @@ def processing_school(env):
             school.append(0)
     
     return school, univ
+
+def area_par_room(df):
+    def calc(row):
+        return row['area_num']/row['room_num']
+    
+    res = df.apply(calc,axis=1)
+    
+    return pd.Series(res)
