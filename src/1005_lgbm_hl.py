@@ -23,7 +23,7 @@ def main(args):
 
     use_col = df.columns
 
-    un_use_col = ['id','y','log_y','location', 'access', 'layout', 'age', 'direction', 'area','floor', 'bath_toilet', 'kitchen',
+    un_use_col = ['id','y','log_y','high_price_flag','prob','label','location', 'access', 'layout', 'age', 'direction', 'area','floor', 'bath_toilet', 'kitchen',
                  'broadcast_com', 'facilities','parking', 'enviroment', 'structure', 'contract_period',
                  'walk_time','23ku',
                 #  'area_num_countall','floor_countall','room_num_countall','facilities_countall','age_countall','area_num_countall',
