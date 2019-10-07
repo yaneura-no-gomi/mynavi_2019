@@ -107,6 +107,8 @@ def preprocessing_train_test():
     train, test = makeCountFull(train, test, ['23ku','area_num','age','floor','max_floor','layout',
             'direction','facilities','contract_period'])
 
+    train = train[train['y'] < 2000000]
+
     return train, test
 
 
@@ -470,6 +472,7 @@ def remove_outlier(df):
         df = res
 
     res = df
+
     return res
 
 def processing_toilet(bt):

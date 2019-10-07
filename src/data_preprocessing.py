@@ -7,7 +7,6 @@ import pandas as pd
 import pandas_profiling as pdp
 import numpy as np
 import argparse
-from tqdm import tqdm_notebook as tqdm
 from sklearn.preprocessing import StandardScaler
 
 from utils.prepro_func import preprocessing_train_test

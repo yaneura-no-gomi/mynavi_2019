@@ -2,8 +2,10 @@ import pandas as pd
 import lightgbm as lgb
 import numpy as np
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
 import optuna
+
 
 class High_and_Low_Classifier:
     
@@ -26,7 +28,7 @@ class High_and_Low_Classifier:
 
             lgbm_params = {
                 'task': 'train',
-                "metrics": 'binary',
+                # "metrics": 'xentropy',
                 'boosting_type': 'gbdt',
                 'objective': 'binary',
                 "learning_rate": learning_rate,
@@ -37,39 +39,49 @@ class High_and_Low_Classifier:
                 "seed": 0
             }
 
-            cv_results = lgb.cv(lgbm_params, self.lgb_train, nfold=5, stratified=True)
-            score = np.array(cv_results['binary_logloss-mean']).mean()
-            
+            # cv_results = lgb.cv(lgbm_params, self.lgb_train, nfold=5, stratified=False)
+            # print(cv_results['xentropy-mean'])
+            # print(len(cv_results['xentropy-mean']))
+            # score = np.array(cv_results['xentropy-mean']).mean()
+            mdl = lgb.LGBMClassifier(**lgbm_params)
+            stratifiedkfold = StratifiedKFold(n_splits=3)
+            scores = cross_val_score(mdl,self.X_train,self.y_train,cv=stratifiedkfold,scoring='neg_log_loss')
+            score = np.mean(scores)
+
             return score
 
         study = optuna.create_study()
         study.optimize(objective,n_trials=10)
 
-        mdl = lgb.train(study.best_params, self.lgb_train)
-        pred_train = mdl.predict(self.X_train,num_iteration=mdl.best_iteration)
+        mdl = lgb.LGBMClassifier(**study.best_params)
+        mdl.fit(self.X_train,self.y_train)
+
+        pred_train = mdl.predict_proba(self.X_train)[:,1]
         pred_train = [1 if i>0.5 else 0 for i in pred_train]
-        pred_test = mdl.predict(self.X_test,num_iteration=mdl.best_iteration)
+
+        pred_test = mdl.predict_proba(self.X_test)[:,1]
         pred_test = [1 if i>0.5 else 0 for i in pred_test]
 
         train_accuracy = accuracy_score(self.y_train,pred_train)
         test_accuracy = accuracy_score(self.y_test,pred_test)
-
-        # print(pred_test)
 
         print('---------------------------------')
         print('train score: ',train_accuracy)
         print('test score: ',test_accuracy)
         print('---------------------------------')
 
-        self.lgb_train = lgb.Dataset(self.X, self.y)
-        mdl = lgb.train(study.best_params, self.lgb_train)
+        # self.lgb_train = lgb.Dataset(self.X, self.y)
+        # mdl = lgb.train(study.best_params, self.lgb_train)
+        mdl = lgb.LGBMClassifier(**study.best_params)
+        mdl.fit(self.X,self.y)
 
         self.trained_mdl = mdl
 
     def pred(self,test):
         self.test = test.loc[:,self.use_col]
         mdl = self.trained_mdl
-        self.test_pred = mdl.predict(self.test, num_iteration=mdl.best_iteration)
+        self.test_pred = mdl.predict_proba(self.test)[:,1]
+        print(self.test_pred)
 
     def labeling(self):
         labels = [1 if i>0.5 else 0 for i in self.test_pred]
