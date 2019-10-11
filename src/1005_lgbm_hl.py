@@ -55,16 +55,16 @@ def train_and_pred_low(train,test,use_col,args):
             'boosting_type': 'gbdt',
             'objective': 'regression',
             "learning_rate": learning_rate,
-            "num_leaves": num_leaves,
+            "num_leaves": 255,
             "reg_lambda": reg_lambda,
             "reg_alpha": reg_alpha,
             "min_split_gain": min_split_gain,
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
             # "subsample": subsample,
-            # "max_bin": 1024,
+            "max_bin": 255,
             "drop_rate": drop_rate,
-            "max_depth": max_depth,
+            "max_depth": -1,
             "min_data_in_leaf": min_data_in_leaf,
             "n_jobs": 1,
             'verbose': -1,
@@ -168,16 +168,16 @@ def train_and_pred_high(train,test,use_col,args):
             'boosting_type': 'gbdt',
             'objective': 'regression',
             "learning_rate": learning_rate,
-            "num_leaves": num_leaves,
+            "num_leaves": 255,
             "reg_lambda": reg_lambda,
             "reg_alpha": reg_alpha,
             "min_split_gain": min_split_gain,
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
             # "subsample": subsample,
-            # "max_bin": 1024,
+            "max_bin": 255,
             "drop_rate": drop_rate,
-            "max_depth": max_depth,
+            "max_depth": -1,
             "min_data_in_leaf": min_data_in_leaf,
             "n_jobs": 1,
             'verbose': -1,
@@ -259,6 +259,14 @@ def main(args):
                     'walk_time','23ku',
                     #  'area_num_countall','floor_countall','room_num_countall','facilities_countall','age_countall','area_num_countall',
                 ]
+
+    mdl = lgb.Booster(model_file='mdl/1011_lgbm.txt')
+    feature_importances = pd.DataFrame()
+    feature_importances['feature'] = mdl.feature_name()
+    feature_importances['importance'] = mdl.feature_importance()
+    feature_importances = feature_importances.sort_values(by='importance', ascending=False)
+
+    un_use_col += list(feature_importances[feature_importances['importance']<5]['feature'])
 
     use_col = [c for c in use_col if c not in un_use_col]
 

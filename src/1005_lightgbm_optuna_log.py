@@ -30,13 +30,13 @@ def main(args):
                 #  'area_num_countall','floor_countall','room_num_countall','facilities_countall','age_countall','area_num_countall',
                 ]
 
-    mdl = lgb.Booster(model_file='mdl/1005_lgbm_log.txt')
+    mdl = lgb.Booster(model_file='mdl/1011_lgbm.txt')
     feature_importances = pd.DataFrame()
     feature_importances['feature'] = mdl.feature_name()
     feature_importances['importance'] = mdl.feature_importance()
     feature_importances = feature_importances.sort_values(by='importance', ascending=False)
 
-    # un_use_col += list(feature_importances[feature_importances['importance']<30]['feature'])
+    un_use_col += list(feature_importances[feature_importances['importance']==0]['feature'])
 
     use_col = [c for c in use_col if c not in un_use_col]
 
@@ -54,8 +54,8 @@ def main(args):
         drop_rate = trial.suggest_uniform('drop_rate', 0, 1.0)
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         # subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
-        num_leaves = trial.suggest_int('num_leaves', 10, 2**8)
-        max_depth = trial.suggest_int('max_depth', 3, 8)
+        # num_leaves = trial.suggest_int('num_leaves', 10, 2**8)
+        # max_depth = trial.suggest_int('max_depth', 3, 8)
         min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 1000)
         reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-4, 1e3)
         reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-4, 1e3)
@@ -70,16 +70,16 @@ def main(args):
             'boosting_type': 'gbdt',
             'objective': 'regression',
             "learning_rate": learning_rate,
-            "num_leaves": num_leaves,
+            "num_leaves": 255,
             "reg_lambda": reg_lambda,
             "reg_alpha": reg_alpha,
             "min_split_gain": min_split_gain,
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
             # "subsample": subsample,
-            # "max_bin": 1024,
+            "max_bin": 255,
             "drop_rate": drop_rate,
-            "max_depth": max_depth,
+            "max_depth": -1,
             "min_data_in_leaf": min_data_in_leaf,
             "n_jobs": 1,
             'verbose': -1,
