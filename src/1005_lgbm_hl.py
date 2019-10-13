@@ -38,15 +38,15 @@ def train_and_pred_low(train,test,use_col,args):
 
         drop_rate = trial.suggest_uniform('drop_rate', 0, 1.0)
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
-        # subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
-        num_leaves = trial.suggest_int('num_leaves', 10, 2**8)
-        max_depth = trial.suggest_int('max_depth', 3, 8)
-        min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 1000)
+        subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
+        num_leaves = trial.suggest_int('num_leaves', 2**4, 2**10)
+        max_depth = trial.suggest_int('max_depth', 4, 10)
+        # min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 1000)
         reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-4, 1e3)
         reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-4, 1e3)
         min_split_gain = trial.suggest_loguniform('min_split_gain', 1e-4, 1e3)
         colsample_bytree = trial.suggest_uniform('colsample_bytree', 0.3, 1.0)
-        min_child_weight = trial.suggest_int('min_child_weight',5,50)
+        min_child_weight = trial.suggest_int('min_child_weight',5,30)
 
 
         lgbm_params = {
@@ -55,22 +55,23 @@ def train_and_pred_low(train,test,use_col,args):
             'boosting_type': 'gbdt',
             'objective': 'regression',
             "learning_rate": learning_rate,
-            "num_leaves": 255,
+            "num_leaves": num_leaves,
+            # "num_leaves": 255,
             "reg_lambda": reg_lambda,
             "reg_alpha": reg_alpha,
             "min_split_gain": min_split_gain,
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
-            # "subsample": subsample,
+            "subsample": subsample,
             "max_bin": 255,
             "drop_rate": drop_rate,
-            "max_depth": -1,
-            "min_data_in_leaf": min_data_in_leaf,
+            "max_depth": max_depth,
+            # "max_depth": -1,
+            # "min_data_in_leaf": min_data_in_leaf,
             "n_jobs": 1,
             'verbose': -1,
             "seed": 0
         }
-
         cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold, stratified=False)
 
         score = np.array(cv_results['rmse-mean']).mean()
@@ -151,16 +152,17 @@ def train_and_pred_high(train,test,use_col,args):
     def objective(trial):
 
         drop_rate = trial.suggest_uniform('drop_rate', 0, 1.0)
-        learning_rate = trial.suggest_uniform('learning_rate', 0, 0.5)
-        # subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
-        num_leaves = trial.suggest_int('num_leaves', 10, 2**5)
-        max_depth = trial.suggest_int('max_depth', 3, 5)
-        min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 100)
+        learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
+        subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
+        num_leaves = trial.suggest_int('num_leaves', 2**4, 2**10)
+        max_depth = trial.suggest_int('max_depth', 4, 10)
+        # min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 1000)
         reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-4, 1e3)
         reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-4, 1e3)
         min_split_gain = trial.suggest_loguniform('min_split_gain', 1e-4, 1e3)
         colsample_bytree = trial.suggest_uniform('colsample_bytree', 0.3, 1.0)
-        min_child_weight = trial.suggest_int('min_child_weight',5,50)
+        min_child_weight = trial.suggest_int('min_child_weight',5,30)
+
 
         lgbm_params = {
             'task': 'train',
@@ -168,21 +170,24 @@ def train_and_pred_high(train,test,use_col,args):
             'boosting_type': 'gbdt',
             'objective': 'regression',
             "learning_rate": learning_rate,
-            "num_leaves": 255,
+            "num_leaves": num_leaves,
+            # "num_leaves": 255,
             "reg_lambda": reg_lambda,
             "reg_alpha": reg_alpha,
             "min_split_gain": min_split_gain,
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
-            # "subsample": subsample,
+            "subsample": subsample,
             "max_bin": 255,
             "drop_rate": drop_rate,
-            "max_depth": -1,
-            "min_data_in_leaf": min_data_in_leaf,
+            "max_depth": max_depth,
+            # "max_depth": -1,
+            # "min_data_in_leaf": min_data_in_leaf,
             "n_jobs": 1,
             'verbose': -1,
             "seed": 0
         }
+        
 
         cv_results = lgb.cv(lgbm_params, lgb_train, nfold=args.k_fold, stratified=False)
 
@@ -194,7 +199,7 @@ def train_and_pred_high(train,test,use_col,args):
 
     print('begin training')
     # optuna.logging.enable_default_handler()
-    study.optimize(objective, n_trials=args.n_trials*3)
+    study.optimize(objective, n_trials=args.n_trials)
     print()
 
     print('---------------------------------')
@@ -260,13 +265,13 @@ def main(args):
                     #  'area_num_countall','floor_countall','room_num_countall','facilities_countall','age_countall','area_num_countall',
                 ]
 
-    mdl = lgb.Booster(model_file='mdl/1011_lgbm.txt')
+    mdl = lgb.Booster(model_file='mdl/1013_lgbm.txt')
     feature_importances = pd.DataFrame()
     feature_importances['feature'] = mdl.feature_name()
     feature_importances['importance'] = mdl.feature_importance()
     feature_importances = feature_importances.sort_values(by='importance', ascending=False)
 
-    un_use_col += list(feature_importances[feature_importances['importance']<5]['feature'])
+    un_use_col += list(feature_importances[feature_importances['importance']<50]['feature'])
 
     use_col = [c for c in use_col if c not in un_use_col]
 

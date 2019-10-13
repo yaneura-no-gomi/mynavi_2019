@@ -107,7 +107,14 @@ def preprocessing_train_test():
     train, test = makeCountFull(train, test, ['23ku','area_num','age','floor','max_floor','layout',
             'direction','facilities','contract_period'])
 
+    # too large y is supposed to outliers
     train = train[train['y'] < 2000000]
+
+    train_idokdo = pd.read_csv('processed_data/place_train.csv')
+    train = pd.merge(train,train_idokdo,on='id')
+
+    test_idokdo = pd.read_csv('processed_data/place_test.csv')
+    test = pd.merge(test,test_idokdo,on='id')
 
     return train, test
 
@@ -465,6 +472,10 @@ def processing_bike_parking(parking):
     return bike
 
 def remove_outlier(df):
+    '''
+    id = 20232,20428 築年数がおかしい
+    id = 20927 面積と家賃のバランスがおかしい
+    '''
     remove_ids = [20927,20232,20428]
     
     for _id in remove_ids:
