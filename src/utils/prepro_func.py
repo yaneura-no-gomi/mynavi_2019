@@ -77,7 +77,7 @@ def preprocessing_train_test():
 
         # contract_period
         df['teiki_syakuya'] = teiki_syakuya(df['contract_period'])
-        df['contract_period'] = df.fillna('2年間')
+        df['contract_period'] = df['contract_period'].fillna('2年間')
  
         # enviroment
         df['e_num'],df['dis_ave'],df['dis_min'] = processing_env(df['enviroment'])

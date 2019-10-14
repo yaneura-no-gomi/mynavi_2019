@@ -55,9 +55,9 @@ def main(args):
         drop_rate = trial.suggest_uniform('drop_rate', 0, 1.0)
         learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
-        num_leaves = trial.suggest_int('num_leaves', 2**4, 2**10)
+        num_leaves = trial.suggest_int('num_leaves', 2**4, 2**8)
         max_depth = trial.suggest_int('max_depth', 4, 10)
-        # min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 1000)
+        min_data_in_leaf = trial.suggest_int('min_data_in_leaf', 2, 1000)
         reg_lambda = trial.suggest_loguniform('reg_lambda', 1e-4, 1e3)
         reg_alpha = trial.suggest_loguniform('reg_alpha', 1e-4, 1e3)
         min_split_gain = trial.suggest_loguniform('min_split_gain', 1e-4, 1e3)
@@ -79,11 +79,11 @@ def main(args):
             "colsample_bytree": colsample_bytree,
             "min_child_weight": min_child_weight,
             "subsample": subsample,
-            "max_bin": 255,
+            "max_bin": 511,
             "drop_rate": drop_rate,
             "max_depth": max_depth,
             # "max_depth": -1,
-            # "min_data_in_leaf": min_data_in_leaf,
+            "min_data_in_leaf": min_data_in_leaf,
             "n_jobs": 1,
             'verbose': -1,
             "seed": 0
