@@ -76,13 +76,13 @@ if __name__ == "__main__":
         r4 = pickle.load(f)
 
     pred1 = r1.predict_proba(processed_test.loc[:,use_col])[:,1]
-    pred1 = [1 if i>0.5 else 0 for i in pred1]
+    # pred1 = [1 if i>0.5 else 0 for i in pred1]
     pred2 = r2.predict_proba(processed_test.loc[:,use_col])[:,1]
-    pred2 = [1 if i>0.5 else 0 for i in pred2]
+    # pred2 = [1 if i>0.5 else 0 for i in pred2]
     pred3 = r3.predict_proba(processed_test.loc[:,use_col])[:,1]
-    pred3 = [1 if i>0.5 else 0 for i in pred3]
+    # pred3 = [1 if i>0.5 else 0 for i in pred3]
     pred4 = r4.predict_proba(processed_test.loc[:,use_col])[:,1]
-    pred4 = [1 if i>0.5 else 0 for i in pred4]
+    # pred4 = [1 if i>0.5 else 0 for i in pred4]
 
 
     label = []

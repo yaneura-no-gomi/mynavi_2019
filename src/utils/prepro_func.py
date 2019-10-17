@@ -254,7 +254,6 @@ def processing_walk_time(access):
                 continue
 
             elif hun == 1:
-                hoge = 1
                 t = re.search(r'\d+分', way).group()[:-1]
                 time.append(int(t))
 
@@ -476,7 +475,7 @@ def remove_outlier(df):
     id = 20232,20428 築年数がおかしい
     id = 20927 面積と家賃のバランスがおかしい
     '''
-    remove_ids = [20927,20232,20428]
+    remove_ids = [5776,20927,20232,20428]
     
     for _id in remove_ids:
         res = df.drop(df[df['id']==_id].index)
