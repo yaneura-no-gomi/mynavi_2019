@@ -40,7 +40,7 @@ if __name__ == "__main__":
     use_col = processed_train.columns
     un_use_col = ['id','y','log_y','high_price_flag','location', 'access', 'layout', 'age', 'direction', 'area','floor', 'bath_toilet', 'kitchen',
                  'broadcast_com', 'facilities','parking', 'enviroment', 'structure', 'contract_period',
-                 'walk_time','23ku',
+                 'walk_time','23ku','23ku_mean_2',
                 #  'area_num_countall','floor_countall','room_num_countall','facilities_countall','age_countall','area_num_countall',
                 ]
 

@@ -116,6 +116,11 @@ def preprocessing_train_test():
     test_idokdo = pd.read_csv('processed_data/place_test.csv')
     test = pd.merge(test,test_idokdo,on='id')
 
+    km2 = pd.read_csv('processed_data/23ku_mean_2.csv')
+
+    train = pd.merge(train,km2,on=['23ku','room_num']).sort_values('id').reset_index(drop=True)
+    test = pd.merge(test,km2,on=['23ku','room_num']).sort_values('id').reset_index(drop=True)
+    
     return train, test
 
 
