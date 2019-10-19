@@ -116,10 +116,7 @@ def preprocessing_train_test():
     test_idokdo = pd.read_csv('processed_data/place_test.csv')
     test = pd.merge(test,test_idokdo,on='id')
 
-    km2 = pd.read_csv('processed_data/23ku_mean_2.csv')
-
-    train = pd.merge(train,km2,on=['23ku','room_num']).sort_values('id').reset_index(drop=True)
-    test = pd.merge(test,km2,on=['23ku','room_num']).sort_values('id').reset_index(drop=True)
+    train['23ku_mean_2'],test['23ku_mean_2'] = processing_location_2(train,test)
     
     return train, test
 
@@ -748,3 +745,22 @@ def area_par_room(df):
     res = df.apply(calc,axis=1)
     
     return pd.Series(res)
+
+def processing_location_2(train,test):
+    df = pd.read_csv('processed_data/23ku_mean_2.csv')
+    
+    res_tra = []
+    res_tes = []
+    for ku,rn in zip(train.loc[:,'23ku'],train.loc[:,'room_num']):
+        if rn>4:
+            rn = 4
+        tmp = float(df[(df['23ku']==ku)&(df['room_num']==rn)]['23ku_mean_2'])
+        res_tra.append(tmp)
+        
+    for ku,rn in zip(test.loc[:,'23ku'],test.loc[:,'room_num']):
+        if rn>4:
+            rn = 4
+        tmp = float(df[(df['23ku']==ku)&(df['room_num']==rn)]['23ku_mean_2'])
+        res_tes.append(tmp)
+    
+    return res_tra,res_tes
