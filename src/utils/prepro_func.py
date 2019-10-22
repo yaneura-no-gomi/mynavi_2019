@@ -96,11 +96,11 @@ def preprocessing_train_test():
     # high price labeling
     train['high_price_flag'] = high_price_flag(train,400000)
 
-    # facilities
+    facilities
     train, test = processing_facilities(train,test)
-    # broadcast_com
+    broadcast_com
     train, test = processing_broadcast_com(train,test)
-    # kitchen
+    kitchen
     train, test = processing_kitchen(train,test)
 
     # count encoding for direction

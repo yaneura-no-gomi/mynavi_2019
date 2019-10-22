@@ -93,7 +93,7 @@ if __name__ == "__main__":
         else:
             label.append(0)
     
-    processed_test['label'] = label
+    processed_test['high_price_flag'] = label
 
     processed_train.to_csv(args.output_train,index=False)
     processed_test.to_csv(args.output_test,index=False)

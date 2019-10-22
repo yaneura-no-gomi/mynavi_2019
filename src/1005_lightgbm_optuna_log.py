@@ -24,19 +24,20 @@ def main(args):
 
     use_col = df.columns
 
-    un_use_col = ['id','y','log_y','high_price_flag','label','location', 'access', 'layout', 'age', 'direction', 'area','floor', 'bath_toilet', 'kitchen',
+    un_use_col = ['id','y','log_y','label','location', 'access', 'layout', 'age', 'direction', 'area','floor', 'bath_toilet', 'kitchen',
                  'broadcast_com', 'facilities','parking', 'enviroment', 'structure', 'contract_period',
                  'walk_time','23ku',
+                #  'high_price_flag',
                 #  'area_num_countall','floor_countall','room_num_countall','facilities_countall','age_countall','area_num_countall',
                 ]
 
-    mdl = lgb.Booster(model_file='mdl/1013_lgbm.txt')
+    mdl = lgb.Booster(model_file='mdl/1019_lgbm_2.txt')
     feature_importances = pd.DataFrame()
     feature_importances['feature'] = mdl.feature_name()
     feature_importances['importance'] = mdl.feature_importance()
     feature_importances = feature_importances.sort_values(by='importance', ascending=False)
 
-    un_use_col += list(feature_importances[feature_importances['importance']==0]['feature'])
+    un_use_col += list(feature_importances[feature_importances['importance']<30]['feature'])
 
     use_col = [c for c in use_col if c not in un_use_col]
 
@@ -53,7 +54,7 @@ def main(args):
     def objective(trial):
 
         drop_rate = trial.suggest_uniform('drop_rate', 0, 1.0)
-        learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
+        # learning_rate = trial.suggest_uniform('learning_rate', 0, 1.0)
         subsample = trial.suggest_uniform('subsample', 0.6, 1.0)
         num_leaves = trial.suggest_int('num_leaves', 2**7, 2**10)
         max_depth = trial.suggest_int('max_depth', 7, 14)
@@ -70,7 +71,7 @@ def main(args):
             "metrics": 'rmse',
             'boosting_type': 'gbdt',
             'objective': 'regression',
-            "learning_rate": learning_rate,
+            "learning_rate": 0.1,
             "num_leaves": num_leaves,
             # "num_leaves": 255,
             "reg_lambda": reg_lambda,
