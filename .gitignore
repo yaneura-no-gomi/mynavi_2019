@@ -1,5 +1,5 @@
 .python-version
 /notebook/.ipynb_checkpoints
 .vscode
-
-
+data
+processed_data
